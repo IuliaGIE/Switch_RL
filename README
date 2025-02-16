@@ -1,0 +1,58 @@
+1 2 3
+
+Cerinta 1
+    La primirea unui cadru Ethernet, switch-ul realizeaza urmatoarele actiuni:
+        - La fiecare cadru primit, switch-ul invata adresa MAC sursa si o adauga 
+        in tabela MAC, asociind-o cu portul de intrare.
+        - Verifica daca adresa primita este de tip unicast
+            - verifica daca adresa MAC destinatie se afla deja in tabela MAC. 
+            Daca adresa este gasita, cadrul este transmis direct la portul 
+            asociat acelei adrese MAC.
+            - Daca adresa MAC destinatie nu este gasita in tabela, switch-ul 
+            trimite cadrul pe toate porturile, cu exceptia portului de intrare. 
+        - Daca adresa primita este de tip multicast
+            -Switch-ul trimite cadrul pe toate porturile, cu exceptia portului de 
+            intrare, pentru a asigura ca toate dispozitivele din retea primesc cadrul.
+
+Cerinta 2
+    La primirea unui cadru Ethernet, switch-ul aplica urmatoarele reguli pentru VLAN:
+    - Identificarea VLAN-ului:
+        - Daca cadrul provine de pe un port de tip access. Switch-ul va asocia implicit 
+        VLAN-ul configurat pentru acel port, utilizand vlan_table.
+        - Daca cadrul provine de pe un port de tip trunk, acesta va avea deja un tag VLAN. 
+        Switch-ul va utiliza tag-ul respectiv pentru a identifica VLAN-ul cadrului. 
+        Dupa ce este primit, tag-ul VLAN este eliminat inainte de procesare.
+    - Transmiterea Cadrelor:
+        - Porturi Access: Daca portul de iesire este de tip access si are acelasi 
+        VLAN ID ca si cadrul, switch-ul trimite cadrul fara tag, deoarece cadrul 
+        a ajuns la host-ul destinatie.
+        - Porturi Trunk: Daca portul de iesire este de tip trunk, switch-ul adauga un tag 
+        VLAN la cadrul inainte de transmitere pentru a pastra identificarea VLAN-ului pe 
+        intreaga retea.
+
+Cerinta 3
+    - Initializare:
+        - Toate porturile trunk sunt setate in starea Blocking.
+        - Switch-ul isi seteaza propriul own_bridge_ID =  switch.priority_value ca 
+        fiind root_bridge_id.
+        - Daca switch-ul este root bridge, toate porturile sunt setate ca Designated Ports
+    - Receptia unui Cadru BPDU 
+        - La primirea unui cadru BPDU:
+            - Daca BPDU-ul indica un root_bridge_ID mai mic decat root_bridge_id al 
+            switch-ului curent:
+                - Switch-ul actualizeaza root_bridge_id si seteaza root_path_cost la 
+                sender_path_cost + 10 
+                - Seteaza portul de intrare al BPDU-ului ca root port
+                - Daca switch-ul era anterior root bridge, seteaza toate porturile trunk, 
+                exceptand root port-ul, in starea Blocking
+                - Transmite BPDU-ul actualizat pe toate celelalte porturi trunk 
+            - Daca BPDU-ul indica root_bridge_ID = root_bridge_id:
+                - Daca BPDU-ul ofera un cost mai mic pe root port (bpdu_root_path_cost + 10 < root_path_cost), 
+                actualizeaza root_path_cost.
+                - Pentru porturile care nu sunt root port:
+                    - Daca bpdu_root_path_cost este mai mare decat root_path_cost, iar portul nu este 
+                    deja Designated Port pentru acel segment, switch-ul seteaza portul ca Listening.
+            - Daca BPDU-ul provine de la acelasi switch (bpdu_own_bridge_id == own_bridge_id):
+                - Seteaza portul pe care a fost primit BPDU-ul in starea Blocking 
+            - Daca switch-ul este root bridge (own_bridge_id == root_bridge_id):
+                - Seteaza toate porturile in starea Listening

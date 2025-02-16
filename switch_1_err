@@ -1,0 +1,2 @@
+[(lib/lib.c:144)]: "ioctl SIOCGIFHWADDR"
+No such device
